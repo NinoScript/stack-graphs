@@ -122,6 +122,7 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
 ; They additionally implicitly define `this` available in the bodies of instance methods, and subclasses further define `super`. The nodes defining these point at the types of the class and superclass, respectively.
 
 (class_declaration
+  (modifiers "static"?@is_static)?
   name: (identifier) @name
   body: (class_body) @class_body) @class {
 
@@ -140,6 +141,13 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @class.defs -> def
   edge def -> @class_body.defs
   edge def -> @class_body.static_defs
+
+  if some @is_static {
+    node member
+    attr (member) pop_symbol = "."
+    edge @class.static_defs -> member
+    edge member -> def
+  }
 
   node this__expr_def
   node @class.type
@@ -490,6 +498,13 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @param.lexical_scope -> @this.lexical_scope
   edge @this.lexical_scope -> @param.def
   edge @this.defs -> @param.def
+}
+
+(class_body
+  (class_declaration
+    (modifiers "static"))@inner_class)@outer_body
+{
+  edge @outer_body.static_defs -> @inner_class.static_defs
 }
 
 ;; ============
