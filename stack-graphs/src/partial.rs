@@ -442,6 +442,22 @@ pub struct PartialSymbolStack {
 }
 
 impl PartialSymbolStack {
+    /// Returns a string representation of this symbol stack for indexing in the database.
+    pub fn storage_key(self, graph: &StackGraph, partials: &mut PartialPaths) -> String {
+        let mut key = String::new();
+        match self.has_variable() {
+            true => key += "V\u{241E}",
+            false => key += "X\u{241E}",
+        }
+
+        use itertools::Itertools;
+        key += &self
+            .iter(partials)
+            .map(|s| &graph[s.symbol])
+            .join("\u{241F}");
+        key
+    }
+
     /// Returns whether this partial symbol stack can match the empty symbol stack.
     #[inline(always)]
     pub fn can_match_empty(&self) -> bool {
